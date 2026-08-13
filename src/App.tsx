@@ -123,26 +123,7 @@ export default function App() {
       return `${base}?name=${encodeURIComponent(name)}&title=${encodeURIComponent(title)}`;
     };
 
-    // Try Web Share API first — attaches actual image on iOS/Android
-    if (navigator.canShare && finalImageBlob) {
-      try {
-        const res = await fetch(finalImageBlob);
-        const blob = await res.blob();
-        const file = new File([blob], `HH-Goa-Builder-ID.png`, { type: 'image/png' });
-        if (navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            files: [file],
-            title: `HH Goa 2026 Builder ID — ${name}`,
-            text: shareText,
-          });
-          return;
-        }
-      } catch (e) {
-        console.warn('Web Share failed, falling back:', e);
-      }
-    }
-
-    // Desktop: need a public Cloudinary URL for the OG image preview on X
+    // Open X.com directly - need a public Cloudinary URL for the OG image preview on X
     if (!CLOUD_NAME || !UPLOAD_PRESET || CLOUD_NAME === 'your_cloud_name') {
       // No Cloudinary — open X with just text
       const twitterUrl = `https://x.com/intent/post?text=${encodeURIComponent(shareText)}`;
