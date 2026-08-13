@@ -149,4 +149,7 @@ app.get('*', (_req, res) => {
 
 app.listen(port, '0.0.0.0', () => {
   console.log(`Server listening on port ${port}`);
+  console.log(`Serving static files from: ${path.resolve(__dirname, '../client')}`);
+  console.log(`Current working directory: ${process.cwd()}`);
+  console.log(`Server directory (__dirname): ${__dirname}`);
 });
