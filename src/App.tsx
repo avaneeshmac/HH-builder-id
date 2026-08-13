@@ -103,12 +103,11 @@ export default function App() {
   };
 
   const handleDownload = () => {
-    const link = finalImageBlob || `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/${sharedId}`;
-    if (!link) return;
-    
+    const dataUrl = finalImageBlob || `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/${sharedId}`;
+    if (!dataUrl) return;
     const a = document.createElement('a');
-    a.href = link;
-    a.download = `HH-Goa-2026-Builder-ID-${name.replace(/\s+/g, '-') || 'Card'}.png`;
+    a.href = dataUrl;
+    a.download = `HH-Goa-Builder-ID-${name.replace(/\s+/g, '-') || 'Card'}.png`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -118,17 +117,35 @@ export default function App() {
     setShareError(null);
     const shareText = `Heading to HH Goa 2026 🌴\nMy builder title: ${title}\n\n#FrameInGoa`;
 
-    // Case 1: Cloudinary credentials are NOT configured.
+    // Try Web Share API first — attaches actual image on iOS/Android
+    if (navigator.canShare && finalImageBlob) {
+      try {
+        const res = await fetch(finalImageBlob);
+        const blob = await res.blob();
+        const file = new File([blob], `HH-Goa-Builder-ID.png`, { type: 'image/png' });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: 'HH Goa 2026 Builder ID',
+            text: shareText,
+          });
+          return;
+        }
+      } catch (e) {
+        // User cancelled or share failed — fall through to X intent
+        console.warn('Web Share failed, falling back:', e);
+      }
+    }
+
+    // Desktop fallback: upload to Cloudinary so image appears as OG preview on X
     if (!CLOUD_NAME || !UPLOAD_PRESET || CLOUD_NAME === 'your_cloud_name') {
-      setShareError('Set up Cloudinary env vars to show images in previews. Opening X with details.');
-      setTimeout(() => {
-        const twitterUrl = `https://x.com/intent/post?text=${encodeURIComponent(shareText + '\n\n')}`;
-        window.open(twitterUrl, '_blank');
-      }, 2500);
+      // No Cloudinary — just open X with text
+      const twitterUrl = `https://x.com/intent/post?text=${encodeURIComponent(shareText)}`;
+      window.open(twitterUrl, '_blank');
       return;
     }
 
-    // Case 2: Already uploaded to Cloudinary
+    // Already uploaded
     if (sharedId) {
       const shareUrl = `${window.location.origin}/share/${sharedId}`;
       const twitterUrl = `https://x.com/intent/post?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
@@ -136,11 +153,10 @@ export default function App() {
       return;
     }
 
-    // Case 3: Need to upload image to Cloudinary first
+    // Upload to Cloudinary, then open X
     setIsProcessing(true);
     try {
       const cardPngData = finalImageBlob || await generateFinalCard();
-
       const formData = new FormData();
       formData.append('file', cardPngData);
       formData.append('upload_preset', UPLOAD_PRESET);
@@ -148,12 +164,10 @@ export default function App() {
 
       const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
         method: 'POST',
-        body: formData
+        body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error('Cloudinary response was not OK');
-      }
+      if (!response.ok) throw new Error('Cloudinary upload failed');
 
       const result = await response.json();
       const publicId = result.public_id;
@@ -164,7 +178,7 @@ export default function App() {
       window.open(twitterUrl, '_blank');
     } catch (e) {
       console.error(e);
-      setShareError("Couldn't upload image. Opening X with details.");
+      setShareError("Couldn't upload image. Try downloading and attaching manually.");
       setTimeout(() => {
         const twitterUrl = `https://x.com/intent/post?text=${encodeURIComponent(shareText)}`;
         window.open(twitterUrl, '_blank');
@@ -285,13 +299,25 @@ export default function App() {
             )}
 
             <div className="flex flex-col space-y-3 w-full max-w-[320px]">
+              {/* Download button */}
               <button
                 onClick={handleDownload}
                 className="flex items-center justify-center space-x-2 py-4 px-6 bg-white hover:bg-slate-100 text-obsidian font-bold rounded-2xl shadow-xl transition-all active:scale-[0.98] select-none"
               >
                 <Download className="w-5 h-5 text-obsidian" />
-                <span>Download</span>
+                <span>Download Image</span>
               </button>
+
+              {/* Direct download link as fallback */}
+              {finalImageBlob && (
+                <a
+                  href={finalImageBlob}
+                  download={`HH-Goa-Builder-ID-${name.replace(/\s+/g, '-') || 'Card'}.png`}
+                  className="flex items-center justify-center space-x-2 py-2.5 px-6 border border-slate-700 hover:border-slate-500 text-slate-400 hover:text-white text-sm font-mono rounded-xl transition-all active:scale-[0.98] select-none"
+                >
+                  <span>↓ Direct link download</span>
+                </a>
+              )}
               
               <button
                 onClick={handleShareToX}
