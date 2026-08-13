@@ -17,126 +17,124 @@ app.use(express.json());
 
 const CLOUD_NAME = process.env.VITE_CLOUDINARY_CLOUD_NAME || 'demo';
 
-// Serve Open Graph page for shared IDs
-app.get('/share/:id', (req, res) => {
+// ─────────────────────────────────────────────────────────
+// /share/:id — Serves a full OG-tagged HTML page so that
+// Twitter/X, WhatsApp, Slack etc. crawl the generated image
+// as the link preview card.
+//
+// Cloudinary public_id may include slashes (hh_goa_2026/abc)
+// so we use :id(*) to capture the full path segment.
+//
+// Query params:
+//   ?name=Avaneesh&title=Ship-It%20Architect
+// ─────────────────────────────────────────────────────────
+app.get('/share/:id(*)', (req, res) => {
   const id = req.params.id;
-  // Reconstruct Cloudinary image URL from public ID
+  const personName = (req.query.name as string) || 'A Builder';
+  const personTitle = (req.query.title as string) || 'HH Goa 2026';
+
   const imageUrl = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/${id}`;
-  const shareUrl = `${req.protocol}://${req.get('host')}/share/${id}`;
+  const shareUrl = `${req.protocol}://${req.get('host')}/share/${id}?name=${encodeURIComponent(personName)}&title=${encodeURIComponent(personTitle)}`;
+
+  const ogTitle = `${personName} — HH Goa 2026 Builder ID`;
+  const ogDescription = `${personName} is heading to HH Goa 2026 as: ${personTitle} 🌴 #FrameInGoa`;
 
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <!-- SEO & Open Graph Tags for Social Previews -->
-  <title>HH Goa 2026 Builder ID</title>
-  <meta name="description" content="HH Goa 2026 Builder ID.">
-  
-  <!-- Facebook / Open Graph -->
+  <title>${ogTitle}</title>
+  <meta name="description" content="${ogDescription}">
+
+  <!-- Open Graph (Facebook, WhatsApp, LinkedIn, Slack) -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="${shareUrl}">
-  <meta property="og:title" content="HH Goa 2026 Builder ID">
-  <meta property="og:description" content="HH Goa 2026 Builder ID.">
+  <meta property="og:title" content="${ogTitle}">
+  <meta property="og:description" content="${ogDescription}">
   <meta property="og:image" content="${imageUrl}">
+  <meta property="og:image:secure_url" content="${imageUrl}">
   <meta property="og:image:width" content="1080">
   <meta property="og:image:height" content="1350">
-  
-  <!-- Twitter / X -->
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:alt" content="${ogTitle}">
+
+  <!-- Twitter / X — summary_large_image renders the full card graphic -->
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@hackerhouseapp">
   <meta name="twitter:url" content="${shareUrl}">
-  <meta name="twitter:title" content="HH Goa 2026 Builder ID">
-  <meta name="twitter:description" content="HH Goa 2026 Builder ID.">
+  <meta name="twitter:title" content="${ogTitle}">
+  <meta name="twitter:description" content="${ogDescription}">
   <meta name="twitter:image" content="${imageUrl}">
+  <meta name="twitter:image:alt" content="${ogTitle}">
 
   <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background-color: #0B0F17;
+      background-color: #014F33;
       color: #F8FAFC;
-      font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      margin: 0;
-      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
       text-align: center;
-      box-sizing: border-box;
-    }
-    .container {
-      max-width: 500px;
       padding: 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
     }
     .card-preview {
       width: 100%;
-      max-width: 320px;
+      max-width: 280px;
       border-radius: 16px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(16, 185, 129, 0.2);
+      border: 6px solid #FCD34D;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
       margin-bottom: 24px;
-      transition: transform 0.3s ease;
-    }
-    .card-preview:hover {
-      transform: scale(1.02);
     }
     h1 {
-      font-size: 28px;
-      margin: 0 0 12px 0;
-      font-weight: 700;
-      background: linear-gradient(135deg, #10B981 0%, #3B82F6 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      font-size: 24px;
+      font-weight: 800;
+      color: #FCD34D;
+      margin-bottom: 6px;
     }
     p {
-      font-size: 16px;
-      color: #94A3B8;
-      margin: 0 0 24px 0;
-      line-height: 1.5;
+      font-size: 14px;
+      color: rgba(255,255,255,0.65);
+      margin-bottom: 24px;
     }
     .btn {
-      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-      color: white;
+      background: #FCD34D;
+      color: #014F33;
       text-decoration: none;
-      padding: 14px 28px;
-      font-weight: 600;
+      padding: 14px 32px;
+      font-weight: 800;
       border-radius: 9999px;
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-      transition: all 0.2s ease;
       font-size: 16px;
       display: inline-block;
     }
-    .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
-    }
-    .redirect-msg {
+    .tag {
       margin-top: 16px;
       font-size: 12px;
-      color: #64748B;
+      color: rgba(252,211,77,0.5);
+      font-family: monospace;
     }
   </style>
   <script>
-    // Client-side redirection to frontend app with share parameter
+    // After bots have crawled the OG tags, redirect real users into the React app
     setTimeout(function() {
       window.location.href = "/?shared=" + encodeURIComponent("${id}");
-    }, 1200);
+    }, 1500);
   </script>
 </head>
 <body>
-  <div class="container">
-    <img src="${imageUrl}" alt="HH Goa 2026 Builder ID" class="card-preview" />
-    <h1>HH Goa 2026 Builder ID</h1>
-    <p>HH Goa 2026 Builder ID.</p>
-    <a href="/?shared=${encodeURIComponent(id)}" class="btn">Make your ID</a>
-    <div class="redirect-msg">Redirecting...</div>
-  </div>
+  <img src="${imageUrl}" alt="${ogTitle}" class="card-preview" />
+  <h1>${personName}</h1>
+  <p>${personTitle}</p>
+  <a href="/?shared=${encodeURIComponent(id)}" class="btn">Make your Builder ID</a>
+  <div class="tag">#FrameInGoa &nbsp;·&nbsp; Redirecting…</div>
 </body>
 </html>`;
 
+  res.setHeader('Content-Type', 'text/html');
   res.send(html);
 });
 
@@ -145,7 +143,7 @@ const clientBuildPath = path.resolve(__dirname, '../client');
 app.use(express.static(clientBuildPath));
 
 // Fallback to React app router
-app.get('*', (req, res) => {
+app.get('*', (_req, res) => {
   res.sendFile(path.join(clientBuildPath, 'index.html'));
 });
 

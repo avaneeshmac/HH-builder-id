@@ -117,6 +117,12 @@ export default function App() {
     setShareError(null);
     const shareText = `Heading to HH Goa 2026 🌴\nMy builder title: ${title}\n\n#FrameInGoa`;
 
+    // Helper to build the personalised share URL with name + title embedded
+    const buildShareUrl = (publicId: string) => {
+      const base = `${window.location.origin}/share/${publicId}`;
+      return `${base}?name=${encodeURIComponent(name)}&title=${encodeURIComponent(title)}`;
+    };
+
     // Try Web Share API first — attaches actual image on iOS/Android
     if (navigator.canShare && finalImageBlob) {
       try {
@@ -126,34 +132,33 @@ export default function App() {
         if (navigator.canShare({ files: [file] })) {
           await navigator.share({
             files: [file],
-            title: 'HH Goa 2026 Builder ID',
+            title: `HH Goa 2026 Builder ID — ${name}`,
             text: shareText,
           });
           return;
         }
       } catch (e) {
-        // User cancelled or share failed — fall through to X intent
         console.warn('Web Share failed, falling back:', e);
       }
     }
 
-    // Desktop fallback: upload to Cloudinary so image appears as OG preview on X
+    // Desktop: need a public Cloudinary URL for the OG image preview on X
     if (!CLOUD_NAME || !UPLOAD_PRESET || CLOUD_NAME === 'your_cloud_name') {
-      // No Cloudinary — just open X with text
+      // No Cloudinary — open X with just text
       const twitterUrl = `https://x.com/intent/post?text=${encodeURIComponent(shareText)}`;
       window.open(twitterUrl, '_blank');
       return;
     }
 
-    // Already uploaded
+    // Already uploaded — reuse existing public_id
     if (sharedId) {
-      const shareUrl = `${window.location.origin}/share/${sharedId}`;
+      const shareUrl = buildShareUrl(sharedId);
       const twitterUrl = `https://x.com/intent/post?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
       window.open(twitterUrl, '_blank');
       return;
     }
 
-    // Upload to Cloudinary, then open X
+    // Upload image to Cloudinary, then open X with personalised share URL
     setIsProcessing(true);
     try {
       const cardPngData = finalImageBlob || await generateFinalCard();
@@ -173,12 +178,12 @@ export default function App() {
       const publicId = result.public_id;
       setSharedId(publicId);
 
-      const shareUrl = `${window.location.origin}/share/${publicId}`;
+      const shareUrl = buildShareUrl(publicId);
       const twitterUrl = `https://x.com/intent/post?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
       window.open(twitterUrl, '_blank');
     } catch (e) {
       console.error(e);
-      setShareError("Couldn't upload image. Try downloading and attaching manually.");
+      setShareError("Couldn't upload image. Try downloading and sharing manually.");
       setTimeout(() => {
         const twitterUrl = `https://x.com/intent/post?text=${encodeURIComponent(shareText)}`;
         window.open(twitterUrl, '_blank');
@@ -189,6 +194,7 @@ export default function App() {
   };
 
   const handleStartOver = () => {
+
     setPhotoUrl(null);
     setName('Avaneesh');
     setRole('Backend / AI');
