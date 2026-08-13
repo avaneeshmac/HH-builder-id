@@ -134,7 +134,8 @@ export default function App() {
     // Already uploaded — reuse existing public_id
     if (sharedId) {
       const shareUrl = buildShareUrl(sharedId);
-      const twitterUrl = `https://x.com/intent/post?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
+      // Include the share URL in the text so X can preview the image
+      const twitterUrl = `https://x.com/intent/post?text=${encodeURIComponent(shareText + '\n\n' + shareUrl)}`;
       window.open(twitterUrl, '_blank');
       return;
     }
@@ -160,7 +161,8 @@ export default function App() {
       setSharedId(publicId);
 
       const shareUrl = buildShareUrl(publicId);
-      const twitterUrl = `https://x.com/intent/post?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
+      // Include the share URL in the text so X can preview the image
+      const twitterUrl = `https://x.com/intent/post?text=${encodeURIComponent(shareText + '\n\n' + shareUrl)}`;
       window.open(twitterUrl, '_blank');
     } catch (e) {
       console.error(e);
