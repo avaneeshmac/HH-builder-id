@@ -4,7 +4,7 @@ import confetti from 'canvas-confetti';
 
 import LandingSection from './components/LandingSection';
 import DetailsForm from './components/DetailsForm';
-import BuilderIDCard from './components/BuilderIDCard';
+import BuilderIDCard, { PhotoState } from './components/BuilderIDCard';
 import { getRandomTitle } from './utils/builderTitles';
 
 // Custom SVG component for the X (formerly Twitter) logo
@@ -26,6 +26,9 @@ export default function App() {
   const [role, setRole] = useState('Backend / AI');
   const [funFact, setFunFact] = useState('Ships bugs faster than features');
   const [title, setTitle] = useState('');
+
+  // Photo crop/zoom state
+  const [photoState, setPhotoState] = useState<PhotoState>({ zoom: 1.0, panX: 0, panY: 0 });
   
   // Share and Export States
   const [isProcessing, setIsProcessing] = useState(false);
@@ -53,6 +56,7 @@ export default function App() {
     setName('Avaneesh');
     setRole('Backend / AI');
     setFunFact('Ships bugs faster than features');
+    setPhotoState({ zoom: 1.0, panX: 0, panY: 0 });
     setStep('details');
   };
 
@@ -218,6 +222,8 @@ export default function App() {
                 role={role}
                 funFact={funFact}
                 title={title}
+                photoState={photoState}
+                onPhotoStateChange={setPhotoState}
               />
             </div>
 

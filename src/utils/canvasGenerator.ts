@@ -34,10 +34,14 @@ export async function ensureFontsLoaded(): Promise<boolean> {
     if ('fonts' in document) {
       await document.fonts.ready;
       await Promise.all([
-        document.fonts.load('italic bold 64px "Playfair Display"'),
+        document.fonts.load('italic bold 72px "Playfair Display"'),
+        document.fonts.load('italic bold 56px "Playfair Display"'),
+        document.fonts.load('bold 40px "Space Mono"'),
+        document.fonts.load('bold 30px "Space Mono"'),
         document.fonts.load('bold 28px "Space Mono"'),
+        document.fonts.load('bold 26px "Space Mono"'),
         document.fonts.load('bold 24px "Space Mono"'),
-        document.fonts.load('bold 32px "Space Mono"')
+        document.fonts.load('bold 22px "Space Mono"'),
       ]);
       return true;
     }
@@ -282,27 +286,45 @@ function drawCrab(ctx: CanvasRenderingContext2D, x: number, y: number) {
 }
 
 /**
- * Draws a clean centered pill badge
+ * Draws a clean centered pill badge with overflow protection
  */
 function drawPillBadge(ctx: CanvasRenderingContext2D, cx: number, cy: number, text: string) {
-  ctx.font = 'bold 24px "Space Mono"';
-  const textWidth = ctx.measureText(text).width;
-  const padX = 40;
-  const padY = 16;
-  const w = textWidth + padX * 2;
-  const h = 24 + padY * 2;
+  const fontSize = 26;
+  ctx.font = `bold ${fontSize}px "Space Mono"`;
+
+  // Clamp text to max width of 880px inside the card
+  const maxTextWidth = 880;
+  let displayText = text;
+  while (ctx.measureText(displayText).width > maxTextWidth && displayText.length > 4) {
+    displayText = displayText.slice(0, -1);
+  }
+  if (displayText !== text) displayText += '…';
+
+  const textWidth = ctx.measureText(displayText).width;
+  const padX = 44;
+  const padY = 18;
+  const w = Math.min(textWidth + padX * 2, 980);
+  const h = fontSize + padY * 2;
   const rx = cx - w / 2;
   const ry = cy - h / 2;
 
-  ctx.fillStyle = '#EC4899'; // Hot pink / Magenta
+  // Shadow glow
+  ctx.shadowColor = 'rgba(236, 72, 153, 0.5)';
+  ctx.shadowBlur = 18;
+
+  ctx.fillStyle = '#EC4899';
   ctx.beginPath();
-  ctx.roundRect(rx, ry, w, h, 20);
+  ctx.roundRect(rx, ry, w, h, h / 2);
   ctx.fill();
+
+  ctx.shadowBlur = 0;
 
   ctx.fillStyle = '#FFFFFF';
   ctx.textAlign = 'center';
-  ctx.fillText(text, cx, cy + 8);
+  ctx.textBaseline = 'middle';
+  ctx.fillText(displayText, cx, cy);
   ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
 }
 
 /**
@@ -341,22 +363,46 @@ export async function drawBuilderIDCard(
   ctx.arc(540, 60, 16, 0, Math.PI * 2);
   ctx.stroke();
 
-  // --- 3. Top Yellow Headers ---
-  ctx.font = 'bold 28px "Space Mono"';
-  ctx.fillStyle = '#FCD34D'; // Soft warm yellow
-  
-  // Left top label
-  ctx.fillText('STUDIO', 100, 110);
-  
-  // Right top label
+
+  // Thin yellow accent stripe at the very top inside the frame
+  ctx.fillStyle = '#FCD34D';
+  ctx.fillRect(80, 78, 920, 5);
+
+  // --- 3. Top Header Branding ---
+  // Vertical centre of the header band: between stripe (y=83) and photo top (y=175)
+  // Header band mid = ~130. Two-line block height ~60px, so top line at ~100, bottom at ~155.
+
+  // LEFT: Stacked "HACKER" + "HOUSE" wordmark
+  ctx.font = 'bold 22px "Space Mono"';
+  ctx.fillStyle = 'rgba(252, 211, 77, 0.75)';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('HACKER', 88, 108);
+
+  ctx.font = 'bold 40px "Space Mono"';
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillText('HOUSE', 88, 152);
+
+  // RIGHT: Goa in Playfair Display + // 2026 in Space Mono — same band height
+  ctx.font = 'italic bold 56px "Playfair Display"';
+  ctx.fillStyle = '#FCD34D';
   ctx.textAlign = 'right';
-  ctx.fillText('HH GOA 2026', 980, 110);
-  ctx.textAlign = 'left'; // Reset
+  ctx.shadowColor = 'rgba(252, 211, 77, 0.35)';
+  ctx.shadowBlur = 14;
+  ctx.fillText('Goa', 985, 118);
+  ctx.shadowBlur = 0;
+
+  ctx.font = 'bold 24px "Space Mono"';
+  ctx.fillStyle = '#FB923C';
+  ctx.fillText('// 2026', 985, 152);
+
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
 
   // --- 4. Draw Ambient Sparkles ---
   ctx.fillStyle = 'rgba(252, 211, 77, 0.2)';
-  drawSparkle(ctx, 160, 160, 16);
-  drawSparkle(ctx, 920, 170, 14);
+  drawSparkle(ctx, 160, 185, 14);
+  drawSparkle(ctx, 920, 185, 12);
 
   // --- 5. Center Photo view with thick Yellow Border ---
   const px = 220;
@@ -410,36 +456,73 @@ export async function drawBuilderIDCard(
   drawCrab(ctx, 950, 640);
 
   // --- 7. Centered Details Text Area ---
-  const cx = 540; // Center coordinate
-  const textStartY = 850;
+  const textCX = 540;
+  let textY = 860;
 
-  // Name: Playfair Display Bold Italic in warm yellow
-  const formattedName = name.trim() || 'Aniket Kumar Singh';
-  ctx.font = 'italic bold 64px "Playfair Display"';
+  // Name: Playfair Display Bold Italic — warm yellow, large & elegant
+  const rawName = name.trim() || 'Your Name';
+  ctx.font = 'italic bold 72px "Playfair Display"';
   ctx.fillStyle = '#FCD34D';
   ctx.textAlign = 'center';
-  ctx.fillText(formattedName, cx, textStartY);
+  ctx.textBaseline = 'alphabetic';
 
-  // Role/Stack: blocky white monospace
-  const formattedRole = (role.trim() || 'Vibes and Codes').toUpperCase();
-  ctx.font = 'bold 28px "Space Mono"';
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fillText(formattedRole, cx, textStartY + 60);
+  // Auto-shrink name font if too wide
+  let nameFontSize = 72;
+  while (ctx.measureText(rawName).width > 920 && nameFontSize > 36) {
+    nameFontSize -= 2;
+    ctx.font = `italic bold ${nameFontSize}px "Playfair Display"`;
+  }
 
-  // --- 8. Double Pink Badges ---
-  const firstBadgeText = (title.trim() || 'Ship-It Architect').toUpperCase();
-  drawPillBadge(ctx, cx, textStartY + 130, firstBadgeText);
+  // Subtle text shadow for name
+  ctx.shadowColor = 'rgba(252, 211, 77, 0.4)';
+  ctx.shadowBlur = 20;
+  ctx.fillText(rawName, textCX, textY);
+  ctx.shadowBlur = 0;
 
-  // Second badge is either the funFact or default "BUILD MODE: ON"
-  const secondBadgeText = (funFact.trim() || 'BUILD MODE: ON').toUpperCase();
-  drawPillBadge(ctx, cx, textStartY + 200, secondBadgeText);
+  textY += nameFontSize * 0.72 + 18;
 
-  // --- 9. Footer Text ---
+  // Thin separator dots
+  ctx.fillStyle = 'rgba(252, 211, 77, 0.5)';
+  for (let d = -1; d <= 1; d++) {
+    ctx.beginPath();
+    ctx.arc(textCX + d * 22, textY, 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  textY += 28;
+
+  // Role: Clean tracked uppercase in soft white
+  const rawRole = role.trim() || 'Builder';
   ctx.font = 'bold 30px "Space Mono"';
-  ctx.fillStyle = '#FCD34D';
-  ctx.fillText('GOA, INDIA   •   28-31 OCT 2026   •   #FrameInGoa', cx, 1240);
+  ctx.fillStyle = 'rgba(255,255,255,0.88)';
+  ctx.textAlign = 'center';
 
-  // Reset alignment
+  // Auto-shrink role font if too wide
+  let roleFontSize = 30;
+  while (ctx.measureText(rawRole.toUpperCase()).width > 920 && roleFontSize > 18) {
+    roleFontSize -= 2;
+    ctx.font = `bold ${roleFontSize}px "Space Mono"`;
+  }
+  ctx.fillText(rawRole.toUpperCase(), textCX, textY);
+
+  textY += roleFontSize + 42;
+
+  // --- 8. Double Pink Pill Badges ---
+  const firstBadgeText = (title.trim() || 'Ship-It Architect').toUpperCase();
+  drawPillBadge(ctx, textCX, textY, firstBadgeText);
+
+  textY += 80;
+
+  const secondBadgeText = (funFact.trim() || 'BUILD MODE: ON').toUpperCase();
+  drawPillBadge(ctx, textCX, textY, secondBadgeText);
+
+  // --- 9. Footer — just the hashtag ---
+  ctx.font = 'bold 28px "Space Mono"';
+  ctx.fillStyle = 'rgba(252, 211, 77, 0.6)';
+  ctx.textAlign = 'center';
+  ctx.fillText('#FrameInGoa', textCX, 1290);
+
+  // Reset
   ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
 }
 export type { PhotoState };

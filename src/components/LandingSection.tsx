@@ -142,7 +142,7 @@ export default function LandingSection({ onPhotoLoaded }: LandingSectionProps) {
         onDragLeave={onDragLeave}
         onDrop={onDrop}
         onClick={triggerFileBrowser}
-        className={`w-full aspect-[4/3] sm:aspect-[16/10] min-h-[260px] rounded-3xl border-2 border-dashed flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all duration-300 relative overflow-hidden group ${
+        className={`w-full aspect-[4/3] sm:aspect-[16/10] min-h-[200px] sm:min-h-[260px] rounded-3xl border-2 border-dashed flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all duration-300 relative overflow-hidden group ${
           isDragging 
             ? 'border-goa-emerald bg-goa-emerald/5 scale-[1.01]' 
             : 'border-slate-800 bg-obsidian-light/30 hover:border-slate-700 hover:bg-obsidian-light/50'
@@ -188,7 +188,7 @@ export default function LandingSection({ onPhotoLoaded }: LandingSectionProps) {
       />
 
       {/* Mobile-Friendly Upload Actions */}
-      <div className="grid grid-cols-2 gap-4 w-full mt-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mt-6">
         <button
           onClick={triggerFileBrowser}
           disabled={isProcessing}
