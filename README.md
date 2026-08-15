@@ -1,14 +1,8 @@
-# HH Builder ID 🌴
+# HH Builder ID 
 
 > Generate your official **HackerHouse Goa 2026** Builder ID card — tropical theme, share-ready, built for devs.
 
-### 🚀 [hhg-id-generator.onrender.com](https://hhg-id-generator.onrender.com/)
-
-![Live](https://img.shields.io/badge/Live-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white&labelColor=014F33)
-![HH Goa 2026](https://img.shields.io/badge/HH%20Goa-2026-FCD34D?style=for-the-badge&labelColor=014F33)
-![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=white&labelColor=0B0F17)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white&labelColor=0B0F17)
-![Vite](https://img.shields.io/badge/Vite-5-646CFF?style=for-the-badge&logo=vite&logoColor=white&labelColor=0B0F17)
+### [hhg-id-generator.onrender.com](https://hhg-id-generator.onrender.com/)
 
 ---
 
@@ -17,13 +11,12 @@
 A single-page web app that lets HackerHouse Goa 2026 attendees generate a personalized **Builder ID card** — think conference badge meets social card. Upload your photo, fill in your details, download or share on X.
 
 **Live card features:**
-- 🌿 Dark forest-green tropical theme with hand-drawn vector art (palm tree, sailboat, crab, fish, beer)
-- 📸 Photo upload (JPG, PNG, WEBP, HEIC) or live webcam capture
-- ✏️ Zoom + drag to reposition your photo inside the frame
-- 🏷️ Auto-generated builder title (randomised from a curated list)
-- 💊 Double pink pill badges — your title + fun fact
-- 📥 One-click PNG download
-- 🐦 Share to X with a proper OG image preview (via Cloudinary)
+Photo upload (JPG, PNG, WEBP, HEIC) or live webcam capture
+- Zoom + drag to reposition your photo inside the frame
+- Auto-generated builder title (randomised from a curated list)
+- Double pink pill badges — your title + fun fact
+- One-click PNG download
+- Share to X with a proper OG image preview (via Cloudinary)
 
 ---
 
@@ -75,7 +68,7 @@ Open **two terminals**:
 # Terminal 1 — Vite frontend (http://localhost:5173)
 npm run dev
 
-# Terminal 2 — Express server for OG share links (http://localhost:3000)
+# Terminal 2 — Express server for share links (http://localhost:3000)
 npm run server:dev
 ```
 
@@ -149,4 +142,4 @@ MIT — hack freely.
 
 ---
 
-**#FrameInGoa** 🌴 · HackerHouse Goa · 28–31 Oct 2026
+
