@@ -14,7 +14,6 @@ A single-page web app that lets HackerHouse Goa 2026 attendees generate a person
 Photo upload (JPG, PNG, WEBP, HEIC) or live webcam capture
 - Zoom + drag to reposition your photo inside the frame
 - Auto-generated builder title (randomised from a curated list)
-- Double pink pill badges — your title + fun fact
 - One-click PNG download
 - Share to X with a proper OG image preview (via Cloudinary)
 
